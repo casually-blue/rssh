@@ -1,4 +1,5 @@
 /// IETF recognized ssh protocol version numbers.
+#[derive(Eq,Debug,PartialEq)]
 pub enum SSHVersion {
     /// The standard defined version, usually the one that should be used by any client or server
     Ver2,
@@ -18,7 +19,7 @@ impl std::fmt::Display for SSHVersion {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Eq,PartialEq)]
 /// Possible errors in creating a SSH Protocol Identification string
 pub enum IdentificationError {
     /// The maximum length of the identification string was exceeded
@@ -62,6 +63,7 @@ impl std::error::Error for IdentificationError {}
 ///
 /// The most important function on this data structure is `try_encode_to_string` which will
 /// attempt to create a identification string to be sent to the other partner in a connection.
+#[derive(Eq,PartialEq,Debug)]
 pub struct Identification {
     protocol_version: SSHVersion,
     software_version: String,
@@ -152,14 +154,14 @@ impl Identification {
         }
 
         // Slice off the "SSH-" portion of the identifier string
-        let string_protocol_version_start_slice = &identification_string[4..];
+        let rest = &identification_string[4..];
 
         // Check the beginning of the slice for either of our supported protocol versions, make
         // sure that they are followed by a '-' character so we don't accidentally parse something
         // like '2.01' as supported when only '2.0 is supported
-        let (protocol_version, string_software_version_start_slice) = match string_protocol_version_start_slice.split("-").next() {
-            Some(version) if version == "2.0" => (SSHVersion::Ver2, &string_protocol_version_start_slice[version.len()..]),
-            Some(version) if version == "1.99" => (SSHVersion::Ver1 { minor: 99 }, &string_protocol_version_start_slice[version.len()..]),
+        let (protocol_version, rest) = match rest.split("-").next() {
+            Some(version) if version == "2.0" => (SSHVersion::Ver2, &rest[version.len()..]),
+            Some(version) if version == "1.99" => (SSHVersion::Ver1 { minor: 99 }, &rest[version.len()..]),
             Some(ver) => return Err(IdentificationError::InvalidProtocolVersion { actual: ver.into() }),
             None => unreachable!()
 
@@ -186,25 +188,41 @@ impl Identification {
             SSHVersion::Ver1 { minor } => return Err(IdentificationError::UnsupportedProtocolVersion { ver: format!("1.{minor}") })
         };
 
-        let (software_version, possible_comments_start_slice) = match string_software_version_start_slice.split("-").next() {
-            Some(version) => {
-                (version.into(), &string_software_version_start_slice[version.len()..])
-            },
-            None => {
-                return Err(IdentificationError::MissingSoftwareVersion)
+        if !rest.starts_with('-') {
+            return Err(IdentificationError::MissingSoftwareVersion);
+        }
+        let rest = &rest[1..];
+
+        let (software_version, rest) = if rest.contains(' ') {
+            match rest.split(" ").next() {
+                Some(version) => {
+                    // offset version length by one to get rid of the space character
+                    // and strip the crlf from the string
+                    (version, &rest[version.len()+1..rest.len()-end_len])
+                },
+                None => return Err(IdentificationError::MissingSoftwareVersion)
             }
+        } else {
+            // No comments string is present so we just strip the crlf from the end of the string
+            (&rest[0..rest.len() - end_len], "")
         };
 
-        match possible_comments_start_slice.chars().next()  {
-            Some(c) if c == '\r' || c == '\n' => {
-                Ok(Self::new(protocol_version, software_version, None))
-            },
-            Some(c) if c == ' ' => {
-                let comments = possible_comments_start_slice[1..possible_comments_start_slice.len()-end_len].into();
-                Ok(Self::new(protocol_version, software_version, Some(comments)))
-            },
-            Some(c) => Err(IdentificationError::ExpectedSpaceSeparator { actual: c, value: possible_comments_start_slice.into() }),
-            None => unreachable!()
-        }
+        let comments = match rest.len() {
+            0 => None,
+            _ => Some(rest.into()),
+        };
+
+        Ok(Identification::new(protocol_version, software_version.into(), comments))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::identification::*;
+    #[test]
+    fn test_openssh_ubuntu_identification_string() {
+        let ident = Identification::decode_from_string("SSH-2.0-OpenSSH_7.6p1 Ubuntu-4ubuntu0.5\r\n".into());
+
+        assert_eq!(ident, Ok(Identification::new(SSHVersion::Ver2, "OpenSSH_7.6p1".into(), Some("Ubuntu-4ubuntu0.5".into()))));
     }
 }
