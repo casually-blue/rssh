@@ -3,5 +3,9 @@ edition = "2021"
 name = "rssh"
 version = "0.1.0"
 
-[dependencies]
-clap = { version = "*", features = ["derive"] }
+[dependencies.clap]
+features = ["derive"]
+version = "*"
+
+[dependencies.rust-ssh]
+path = "../rust-ssh"
