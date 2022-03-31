@@ -164,11 +164,20 @@ impl Identification {
 #[cfg(test)]
 mod tests {
     use crate::identification::*;
+    const UBUNTU_OPENSSH_IDENTIFICATON_STRING: &str = "SSH-2.0-OpenSSH_7.6p1 Ubuntu-4ubuntu0.5\r\n";
+
     #[test]
     fn test_openssh_ubuntu_identification_string() {
-        let ident = Identification::decode_from_string("SSH-2.0-OpenSSH_7.6p1 Ubuntu-4ubuntu0.5\r\n".into());
+        let ident = Identification::decode_from_string(UBUNTU_OPENSSH_IDENTIFICATON_STRING.into());
 
         assert_eq!(ident, Ok(Identification::new(SSHVersion::Ver2, "OpenSSH_7.6p1".into(), Some("Ubuntu-4ubuntu0.5".into()))));
+    }
+
+    #[test]
+    fn generate_ubuntu_openssh_ident_string() {
+        let result_ident_string = Identification::new(SSHVersion::Ver2, "OpenSSH_7.6p1".into(), Some("Ubuntu-4ubuntu0.5".into())).try_encode_to_string();
+
+        assert_eq!(result_ident_string, Ok(UBUNTU_OPENSSH_IDENTIFICATON_STRING.into()));
     }
 
     #[test]
