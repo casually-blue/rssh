@@ -170,4 +170,11 @@ mod tests {
 
         assert_eq!(ident, Ok(Identification::new(SSHVersion::Ver2, "OpenSSH_7.6p1".into(), Some("Ubuntu-4ubuntu0.5".into()))));
     }
+
+    #[test]
+    fn test_ident_no_comment() {
+        let ident = Identification::decode_from_string("SSH-2.0-rssh1.0\r\n".into());
+
+        assert_eq!(ident, Ok(Identification::new(SSHVersion::Ver2, "rssh1.0".into(), None)));
+    }
 }
