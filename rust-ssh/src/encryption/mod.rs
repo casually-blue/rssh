@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq, Eq)]
-pub enum Ciphers {
+pub enum CipherType {
     ThreeDESCBC,
     BlowfishCBC,
     Twofish256CBC,
@@ -20,5 +20,15 @@ pub enum Ciphers {
     ArcFour,
     IDEACBC,
     Cast128CBC,
-    None
+    None,
+}
+
+pub trait Cipher {
+    fn get_block_size(&self) -> usize;
+}
+
+impl Cipher for CipherType {
+    fn get_block_size(&self) -> usize {
+        8
+    }
 }

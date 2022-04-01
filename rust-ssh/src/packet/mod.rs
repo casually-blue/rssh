@@ -1,24 +1,30 @@
+use crate::encryption::Cipher;
 use crate::mac::Mac;
 
 pub struct Packet {
     payload: Vec<u8>,
-    mac_type: Mac
+    mac_type: Mac,
+    encryption_cipher: Box<dyn Cipher>,
 }
 
 impl Packet {
-    pub fn new(payload: Vec<u8>, mac_type: Mac) -> Self {
-        Packet { payload, mac_type }
+    pub fn new(payload: Vec<u8>, mac_type: Mac, cipher: Box<dyn Cipher>) -> Self {
+        Packet {
+            payload,
+            mac_type,
+            encryption_cipher: cipher,
+        }
     }
 
-    pub fn encode(&self, cipher_block_size: usize) -> Vec<u8> {
+    pub fn encode(&self) -> Vec<u8> {
         let mut encoded_packet = vec![];
 
         encoded_packet.append(&mut (self.payload.len() as u32).to_le_bytes().to_vec());
 
-        let padding_length = if 8 > cipher_block_size {
+        let padding_length = if 8 > self.encryption_cipher.get_block_size() {
             self.payload.len() % 8
         } else {
-            self.payload.len() % cipher_block_size
+            self.payload.len() % self.encryption_cipher.get_block_size()
         };
 
         encoded_packet.push(padding_length as u8);

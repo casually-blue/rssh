@@ -1,5 +1,5 @@
 /// IETF recognized ssh protocol version numbers.
-#[derive(Eq,Debug,PartialEq)]
+#[derive(Eq, Debug, PartialEq)]
 pub enum SSHVersion {
     /// The standard defined version, usually the one that should be used by any client or server
     Ver2,
@@ -18,4 +18,3 @@ impl std::fmt::Display for SSHVersion {
         }
     }
 }
-

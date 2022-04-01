@@ -5,5 +5,5 @@ pub enum Mac {
     HmacMD5,
     HmacMD5_96,
 
-    None
+    None,
 }

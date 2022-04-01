@@ -1,22 +1,39 @@
-#[derive(Debug,Eq,PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 /// Possible errors in creating a SSH Protocol Identification string
 pub enum IdentificationError {
     /// The maximum length of the identification string was exceeded
     ///
     /// length: The length of the string that resulted in the error
     /// value: the String value itself
-    MaxLengthExceeded { length: usize, value: String },
-    ContainsNullCharacter { index: usize, value: String },
+    MaxLengthExceeded {
+        length: usize,
+        value: String,
+    },
+    ContainsNullCharacter {
+        index: usize,
+        value: String,
+    },
 
-    InvalidEnding { actual: String },
-    InvalidStringBeginning { actual: String },
-    InvalidProtocolVersion { actual: String },
+    InvalidEnding {
+        actual: String,
+    },
+    InvalidStringBeginning {
+        actual: String,
+    },
+    InvalidProtocolVersion {
+        actual: String,
+    },
 
-    UnsupportedProtocolVersion { ver: String },
+    UnsupportedProtocolVersion {
+        ver: String,
+    },
 
-    ExpectedSpaceSeparator { actual: char, value: String },
+    ExpectedSpaceSeparator {
+        actual: char,
+        value: String,
+    },
 
-    MissingSoftwareVersion
+    MissingSoftwareVersion,
 }
 
 impl std::fmt::Display for IdentificationError {
@@ -37,4 +54,3 @@ impl std::fmt::Display for IdentificationError {
 }
 
 impl std::error::Error for IdentificationError {}
-
