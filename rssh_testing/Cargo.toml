@@ -1,0 +1,7 @@
+[package]
+edition = "2021"
+name = "rssh_testing"
+version = "0.1.0"
+
+[dependencies.rust-ssh]
+path = "../rust-ssh"

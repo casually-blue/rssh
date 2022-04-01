@@ -1,4 +1,4 @@
-mod ssh_version;
+pub mod ssh_version;
 mod identification_error;
 
 use ssh_version::*;
