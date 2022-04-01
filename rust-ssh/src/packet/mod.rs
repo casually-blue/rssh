@@ -29,6 +29,8 @@ impl Packet {
 
         encoded_packet.push(padding_length as u8);
 
+        encoded_packet.append(&mut self.payload.clone());
+
         for i in 0..padding_length {
             encoded_packet.push(i as u8);
         }

@@ -17,7 +17,18 @@ pub struct NameList<T: std::fmt::Display> {
 
 impl<T: std::fmt::Display> NameList<T> {
     pub fn encode(&self) -> Vec<u8> {
-        format!("{}", self).chars().map(|x| x as u8).collect()
+        let mut encoded = vec![];
+        let str_nl = format!("{}", self);
+
+        for byte in (str_nl.len() as u32).to_be_bytes() {
+            encoded.push(byte);
+        }
+
+        for byte in str_nl.chars().map(|x| x as u8) {
+            encoded.push(byte);
+        }
+
+        encoded
     }
 }
 
@@ -25,13 +36,19 @@ impl<T: std::fmt::Display> std::fmt::Display for NameList<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let inter: String = ",".to_string();
         let str_list = self.this.iter().map(|x| format!("{x}")).intersperse(inter);
-        write!(f, "(")?;
         for item in str_list {
             write!(f, "{}", item)?
         }
-        write!(f, ")")?;
 
         Ok(())
+    }
+}
+
+impl<T: std::fmt::Display> From<Vec<T>> for NameList<T> {
+    fn from(vec: Vec<T>) -> Self {
+        Self {
+            this: vec
+        }
     }
 }
 
@@ -81,7 +98,7 @@ impl Message for ServiceRequest {
 }
 
 use std::fmt::{Display, Formatter};
-enum KexAlgorithm {}
+pub enum KexAlgorithm {}
 
 impl Display for KexAlgorithm {
     fn fmt(&self, _f: &mut Formatter) -> std::fmt::Result {
@@ -89,7 +106,7 @@ impl Display for KexAlgorithm {
     }
 }
 
-enum EncryptionAlgorithm {}
+pub enum EncryptionAlgorithm {}
 
 impl Display for EncryptionAlgorithm {
     fn fmt(&self, _f: &mut Formatter) -> std::fmt::Result {
@@ -97,21 +114,21 @@ impl Display for EncryptionAlgorithm {
     }
 }
 
-enum MacAlgorithm {}
+pub enum MacAlgorithm {}
 impl Display for MacAlgorithm{
     fn fmt(&self, _f: &mut Formatter) -> std::fmt::Result {
         Ok(())
     }
 }
 
-enum Language {}
+pub enum Language {}
 impl Display for Language{
     fn fmt(&self, _f: &mut Formatter) -> std::fmt::Result {
         Ok(())
     }
 }
 
-enum CompressionAlgorithm {
+pub enum CompressionAlgorithm {
     Zstd,
     None
 }
@@ -120,27 +137,27 @@ impl Display for CompressionAlgorithm{
         Ok(())
     }
 }
-struct KexInitMessage {
-    cookie: [u8; 16],
-    kex_algorithms: NameList<KexAlgorithm>,
-    server_host_key_algorithms: NameList<KexAlgorithm>,
+pub struct KexInitMessage {
+    pub cookie: [u8; 16],
+    pub kex_algorithms: NameList<KexAlgorithm>,
+    pub server_host_key_algorithms: NameList<KexAlgorithm>,
 
-    encryption_algorithms_client_to_server: NameList<EncryptionAlgorithm>,
-    encryption_algorithms_server_to_client: NameList<EncryptionAlgorithm>,
+    pub encryption_algorithms_client_to_server: NameList<EncryptionAlgorithm>,
+    pub encryption_algorithms_server_to_client: NameList<EncryptionAlgorithm>,
 
-    mac_algorithms_client_to_server: NameList<MacAlgorithm>,
-    mac_algorithms_server_to_client: NameList<MacAlgorithm>,
+    pub mac_algorithms_client_to_server: NameList<MacAlgorithm>,
+    pub mac_algorithms_server_to_client: NameList<MacAlgorithm>,
 
-    compression_algorithms_client_to_server: NameList<CompressionAlgorithm>,
-    compression_algorithms_server_to_client: NameList<CompressionAlgorithm>,
+    pub compression_algorithms_client_to_server: NameList<CompressionAlgorithm>,
+    pub compression_algorithms_server_to_client: NameList<CompressionAlgorithm>,
 
-    languages_client_to_server: NameList<Language>,
-    languages_server_to_client: NameList<Language>,
+    pub languages_client_to_server: NameList<Language>,
+    pub languages_server_to_client: NameList<Language>,
 
-    first_kex_packet_follows: bool,
+    pub first_kex_packet_follows: bool,
 
     #[allow(unused)]
-    reserved: u32,
+    pub reserved: u32,
 }
 
 impl Message for KexInitMessage {
